@@ -1,0 +1,168 @@
+openapi: 3.1.0
+info:
+  title: BuildingSight Mock PMS API
+  version: 0.1.0
+  description: >
+    Mock property-management system (Spec 001). Source of truth for contract tests.
+    No DELETE endpoint by design — the create/update-only allowlist is enforced
+    by the API surface (AC-001-05).
+paths:
+  /health:
+    get:
+      summary: Liveness check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                required: [status]
+  /units:
+    get:
+      summary: List units
+      responses:
+        "200":
+          description: Units
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Unit" }
+  /departments:
+    get:
+      summary: List departments
+      responses:
+        "200":
+          description: Departments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Department" }
+  /work-orders:
+    get:
+      summary: List / search work orders (Duplicate Checker uses unit+category+status)
+      parameters:
+        - { name: unit_id, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { $ref: "#/components/schemas/Category" } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/Status" } }
+        - { name: q, in: query, schema: { type: string }, description: "Substring match on title/description" }
+        - { name: limit, in: query, schema: { type: integer, default: 100 } }
+      responses:
+        "200":
+          description: Matching work orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/WorkOrder" }
+    post:
+      summary: Create a work order (201). Honors Idempotency-Key header.
+      parameters:
+        - { name: Idempotency-Key, in: header, required: false, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkOrderCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkOrder" }
+        "422": { description: Validation error (unknown unit/category/priority) }
+  /work-orders/{work_order_id}:
+    get:
+      summary: Get one work order
+      parameters:
+        - { name: work_order_id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Work order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkOrder" }
+        "404": { description: Unknown id }
+    patch:
+      summary: Partial update — status/priority, append-only evidence_refs and notes
+      parameters:
+        - { name: work_order_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkOrderPatch" }
+      responses:
+        "200":
+          description: Updated work order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkOrder" }
+        "404": { description: Unknown id }
+        "422": { description: Validation error }
+    # NOTE: no `delete:` key here, intentionally. DELETE must return 405 (AC-001-05).
+components:
+  schemas:
+    Category:
+      type: string
+      enum: [plumbing, electrical, hvac, painting, carpentry, safety, cleaning, appliance, general]
+    Priority:
+      type: string
+      enum: [low, medium, high, urgent]
+    Status:
+      type: string
+      enum: [open, in_progress, done]
+    Unit:
+      type: object
+      properties:
+        id: { type: string }
+        label: { type: string }
+        building: { type: string }
+      required: [id, label, building]
+    Department:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+      required: [id, name]
+    WorkOrder:
+      type: object
+      properties:
+        id: { type: string }
+        unit_id: { type: string }
+        department_id: { type: string }
+        category: { $ref: "#/components/schemas/Category" }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
+        priority: { $ref: "#/components/schemas/Priority" }
+        status: { $ref: "#/components/schemas/Status" }
+        evidence_refs: { type: array, items: { type: string } }
+        notes: { type: array, items: { type: string } }
+        idempotency_key: { type: ["string", "null"] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+      required: [id, unit_id, department_id, category, title, description, priority, status, evidence_refs, notes, created_at, updated_at]
+    WorkOrderCreate:
+      type: object
+      properties:
+        unit_id: { type: string }
+        department_id: { type: string }
+        category: { $ref: "#/components/schemas/Category" }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, minLength: 1, maxLength: 2000 }
+        priority: { $ref: "#/components/schemas/Priority" }
+        status: { $ref: "#/components/schemas/Status", default: open }
+        evidence_refs: { type: array, items: { type: string }, default: [] }
+        notes: { type: array, items: { type: string }, default: [] }
+      required: [unit_id, department_id, category, title, description, priority]
+    WorkOrderPatch:
+      type: object
+      properties:
+        status: { $ref: "#/components/schemas/Status" }
+        priority: { $ref: "#/components/schemas/Priority" }
+        evidence_refs: { type: array, items: { type: string }, description: "Appended, never replaced" }
+        notes: { type: array, items: { type: string }, description: "Appended, never replaced" }

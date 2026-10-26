@@ -1,0 +1,29 @@
+# Private hackathon application (not project documentation)
+proposal.md
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Pipeline run artifacts
+outputs/
+eval/reports/*
+!eval/reports/baseline.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

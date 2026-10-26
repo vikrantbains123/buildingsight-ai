@@ -1,0 +1,20 @@
+# Category → department routing (Spec 004, ADR-0003)
+# Deterministic: the model classifies the CATEGORY only; this file picks the department.
+# The model never selects a department directly.
+
+categories:
+  plumbing:        { department: "Plumbing",        priority_default: "high" }
+  electrical:      { department: "Electrical",      priority_default: "high" }
+  hvac:            { department: "HVAC",            priority_default: "medium" }
+  painting:        { department: "Painting & Drywall", priority_default: "low" }
+  carpentry:       { department: "Carpentry",       priority_default: "medium" }
+  safety:          { department: "Safety & Compliance", priority_default: "urgent" }
+  cleaning:        { department: "Janitorial",      priority_default: "medium" }
+  appliance:       { department: "Appliance Repair", priority_default: "medium" }
+  general:         { department: "General Maintenance", priority_default: "medium" }
+
+# Demo mapping (must hold for the 4 demo issues):
+#   packages blocking entrance → safety    → Safety & Compliance
+#   leaking faucet             → plumbing  → Plumbing
+#   damaged wall paint         → painting  → Painting & Drywall
+#   malfunctioning thermostat  → hvac      → HVAC

@@ -1,0 +1,33 @@
+{
+  "units": [
+    { "id": "unit-2b", "label": "Unit 2B", "building": "Building A" },
+    { "id": "unit-1a", "label": "Unit 1A", "building": "Building A" },
+    { "id": "unit-lobby", "label": "Main Lobby / Entrance", "building": "Building A" }
+  ],
+  "departments": [
+    { "id": "dept-plumbing", "name": "Plumbing" },
+    { "id": "dept-electrical", "name": "Electrical" },
+    { "id": "dept-hvac", "name": "HVAC" },
+    { "id": "dept-painting", "name": "Painting & Drywall" },
+    { "id": "dept-carpentry", "name": "Carpentry" },
+    { "id": "dept-safety", "name": "Safety & Compliance" },
+    { "id": "dept-janitorial", "name": "Janitorial" },
+    { "id": "dept-appliance", "name": "Appliance Repair" },
+    { "id": "dept-general", "name": "General Maintenance" }
+  ],
+  "work_orders": [
+    {
+      "id": "wo-1001",
+      "unit_id": "unit-2b",
+      "department_id": "dept-plumbing",
+      "category": "plumbing",
+      "title": "Leaking kitchen faucet — Unit 2B",
+      "description": "Resident reported a slow drip from the kitchen faucet in Unit 2B. Needs inspection; possible washer/cartridge replacement.",
+      "priority": "high",
+      "status": "open",
+      "evidence_refs": [],
+      "notes": ["Seeded demo ticket: the walkthrough must UPDATE this, not create a duplicate (Spec 004, AC-004-03)."],
+      "idempotency_key": null
+    }
+  ]
+}
